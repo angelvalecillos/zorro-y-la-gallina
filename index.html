@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Zorro y la Gallina — juego venezolano</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>🦊 Zorro y la Gallina <small>· juego venezolano · 2 zorros vs 20 gallinas</small></h1>
+    <div id="barra">
+      <button id="btn-menu" class="sec" type="button">Menú</button>
+      <button id="btn-reiniciar" class="sec" type="button">Reiniciar (R)</button>
+      <button id="btn-sonido" class="sec" type="button">🔊 Sonido</button>
+      <button id="btn-soplo" class="peligro" type="button" hidden>¡Soplar! 💨</button>
+    </div>
+  </header>
+
+  <div id="info-turno">
+    <span id="turno">Elige modo de juego</span>
+    <span id="contador">🐔 20 · 🦊 2</span>
+  </div>
+  <div id="soplados" hidden>🦊💨 <span id="soplados-txt"></span></div>
+
+  <div id="tablero-wrap">
+    <canvas id="tablero" width="960" height="820"></canvas>
+    <div id="menu">
+      <div class="tarjeta">
+        <img id="portada" src="portada.jpg" alt="El Zorro y la Gallina">
+        <h2>Elige cómo jugar</h2>
+        <label>Modo
+          <select id="modo">
+            <option value="2p">2 jugadores (mismo PC / móvil)</option>
+            <option value="gallinas">Yo soy Gallinas 🐔 (IA zorros)</option>
+            <option value="zorros">Yo soy Zorros 🦊 (IA gallinas)</option>
+          </select>
+        </label>
+        <label>Dificultad IA
+          <select id="dificultad">
+            <option value="facil">Fácil 😌</option>
+            <option value="moderado" selected>Moderado 🙂</option>
+            <option value="dificil">Difícil 😠</option>
+            <option value="imposible">Imposible 🧠</option>
+          </select>
+        </label>
+        <div class="fila">
+          <button id="btn-jugar" type="button">▶ Jugar</button>
+        </div>
+        <p style="font-size:13px;opacity:.85">Las gallinas empiezan. Ganan ocupando las 9 casillas del gallinero (arriba) o inmovilizando a los zorros. Los zorros ganan si dejan 8 o menos gallinas. Si un zorro no captura pudiendo hacerlo, ¡sóplalo!</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="mensaje"></div>
+  <div id="historial"></div>
+
+  <details id="reglas">
+    <summary>📜 Reglas (versión venezolana)</summary>
+    <ul>
+      <li><b>Gallinas (20):</b> 1 casilla por turno hacia adelante, de lado o en diagonal delantera. Nunca retroceden. No capturan.</li>
+      <li><b>Zorros (2):</b> 1 casilla en cualquier dirección. Capturan saltando <b>una</b> gallina a casilla vacía justo detrás. No pueden saltar dos gallinas seguidas. Si puede seguir capturando en cadena, debe hacerlo.</li>
+      <li><b>Soplo:</b> si un zorro tenía captura y juega sin capturar, las gallinas pueden <b>soplarlo</b> (sale del tablero <b>hasta el final</b>).</li>
+      <li><b>Ganan gallinas</b> si ocupan las 9 del gallinero o inmovilizan a los zorros. <b>Ganan zorros</b> si quedan 8 o menos gallinas.</li>
+    </ul>
+  </details>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
