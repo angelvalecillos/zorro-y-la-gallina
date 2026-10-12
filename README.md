@@ -7,7 +7,7 @@ Juego de mesa tradicional venezolano (2 zorros vs 20 gallinas) en **HTML5 puro**
 Abre `index.html` en cualquier navegador moderno (Chrome, Edge, Firefox). No necesita servidor ni internet.
 
 - Click para seleccionar ficha y destino.
-- Atajos: `R` reiniciar, `M` menú.
+- Click (o toque) para seleccionar ficha y destino. Sin atajos de teclado.
 
 ## Subir a minijuegos.com
 

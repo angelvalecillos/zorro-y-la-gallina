@@ -14,6 +14,8 @@ var elMenu = document.getElementById("menu");
 var elSoplo = document.getElementById("btn-soplo");
 var elSoplados = document.getElementById("soplados");
 var elSopladosTxt = document.getElementById("soplados-txt");
+var elbandoZ = document.getElementById("bando-z");
+var elbandoG = document.getElementById("bando-g");
 var elHistorial = document.getElementById("historial");
 
 var W = 7, H = 7;
@@ -83,6 +85,22 @@ var colocandoSuspendido = false;
 var fin = null;               // {ganador:"g"|"z", motivo}
 var modo = "2p";              // 2p | gallinas (humano gallinas) | zorros
 var dificultad = "moderado";
+var nickG = "", nickZ = "";
+function normalizarNick(n){
+  var t=String(n==null?"":n).trim().replace(/\s+/g," ");
+  var bajo=t.toLowerCase();
+  // Cambios forzados: valen durante el juego y en felicitaciones.
+  if(bajo==="yareima"||bajo==="yare") return "yareimita";
+  if(bajo==="pablo") return "pablozqui";
+  if(bajo==="claudia") return "clau";
+  if(bajo==="manuela") return "manu";
+  return t;
+}
+// Nombres de bando: apodo si hay, palabra por defecto si no.
+function notaG(){ return nickG||"Gallinas"; }
+function notaZ(){ return nickZ||"Zorros"; }
+function gMin(){ return nickG||"gallina"; }
+function zMin(){ return nickZ||"zorro"; }
 var iaPensando = false;
 
 function mensaje(t){ elMensaje.textContent = t || ""; }
@@ -211,8 +229,8 @@ function zorroTieneMovimientos(){
 function revisarFin(){
   if(fin) return true;
   var g=contarGallinas();
-  if(g<=8){ fin={ganador:"z",motivo:"Quedan "+g+" gallinas (8 o menos). ¡Los zorros ganan!"}; return true; }
-  if(gallineroCompleto()){ fin={ganador:"g",motivo:"¡Las 9 casillas del gallinero están ocupadas! ¡Ganan las gallinas!"}; return true; }
+  if(g<=8){ fin={ganador:"z",motivo:"Quedan "+g+" "+gMin()+" (8 o menos). ¡Los "+zMin()+" ganan!"}; return true; }
+  if(gallineroCompleto()){ fin={ganador:"g",motivo:"¡Las 9 casillas del gallinero están ocupadas! ¡Ganan "+(nickG?"":"las ")+notaG()+"!"}; return true; }
   return false;
 }
 
@@ -341,11 +359,11 @@ function moverGallina(m){
   if(revisarFin()){ actualizar(); return; }
   // ¿zorros inmovilizados?
   if(!zorroTieneMovimientos() && contarZorros()>0){
-    fin={ganador:"g",motivo:"¡Zorros inmovilizados por completo! ¡Ganan las gallinas!"};
+    fin={ganador:"g",motivo:"¡"+notaZ()+" inmovilizados por completo! ¡Ganan "+(nickG?"":"las ")+notaG()+"!"};
     actualizar(); return;
   }
   if(contarZorros()===0){
-    fin={ganador:"g",motivo:"¡No quedan zorros en el tablero! ¡Ganan las gallinas!"};
+    fin={ganador:"g",motivo:"¡No quedan "+zMin()+" en el tablero! ¡Ganan "+(nickG?"":"las ")+notaG()+"!"};
     actualizar(); return;
   }
   turno="z";
@@ -379,7 +397,7 @@ function moverZorroSimple(deX,deY,aX,aY){
   turno="g";
   // ¿gallinas sin movimientos? -> ganan zorros (bloqueo total)
   if(todosMovsGallina().length===0){
-    fin={ganador:"z",motivo:"Las gallinas no tienen ningún movimiento. ¡Ganan los zorros!"};
+    fin={ganador:"z",motivo:"Las "+gMin()+" no tienen ningún movimiento. ¡Ganan "+(nickZ?"":"los ")+notaZ()+"!"};
   }
   revisarFin();
   actualizar();
@@ -409,7 +427,7 @@ function moverZorroCaptura(cap){
     enCadena={x:cap.aX,y:cap.aY};
     seleccionado={x:cap.aX,y:cap.aY};
     legalesSel=[]; // sin pistas: el jugador debe encontrar el salto (sin X)
-    mensaje("¡Se comió una! Si puede seguir comiendo, DEBE seguir con el mismo zorro. Busca el salto.");
+    mensaje("¡Sigue comiendo con el mismo "+zMin()+"! 🦊");
     actualizar();
     pedirIA(); // por si es IA, que continúe
     return;
@@ -418,7 +436,7 @@ function moverZorroCaptura(cap){
   // Sin retorno: el zorro soplado queda fuera hasta el final.
   turno="g";
   if(todosMovsGallina().length===0){
-    fin={ganador:"z",motivo:"Las gallinas no tienen ningún movimiento. ¡Ganan los zorros!"};
+    fin={ganador:"z",motivo:"Las "+gMin()+" no tienen ningún movimiento. ¡Ganan "+(nickZ?"":"los ")+notaZ()+"!"};
   }
   actualizar();
   pedirIA();
@@ -439,17 +457,17 @@ function aplicarSoplo(){
   tablero[clave(zorroASoplar.x,zorroASoplar.y)]=null;
   suspendidos++; soplosTotal++;
   sonidoSoplo();
-  log("💨 Soplo #"+soplosTotal+": un zorro fuera hasta el final. Queda(n) "+contarZorros()+" en juego.");
-  mensaje("💨 ¡Soplado! Ese zorro queda fuera hasta el final. (Turno consumido)");
+  log("💨 Soplo #"+soplosTotal+": un "+zMin()+" fuera hasta el final. Queda(n) "+contarZorros()+" en juego.");
+  mensaje("💨 ¡Soplado! Fuera hasta el final.");
   soploDisponible=false; zorroASoplar=null; elSoplo.hidden=true;
   seleccionado=null; legalesSel=[];
   // soplar consume el turno de gallinas
   if(contarZorros()===0){
-    fin={ganador:"g",motivo:"¡Los dos zorros fueron soplados! ¡Ganan las gallinas!"};
+    fin={ganador:"g",motivo:"¡Los dos "+zMin()+" fueron soplados! ¡Ganan "+(nickG?"":"las ")+notaG()+"!"};
     actualizar(); return;
   }
   if(!zorroTieneMovimientos()){
-    fin={ganador:"g",motivo:"¡Zorros inmovilizados! ¡Ganan las gallinas!"};
+    fin={ganador:"g",motivo:"¡"+notaZ()+" inmovilizados! ¡Ganan "+(nickG?"":"las ")+notaG()+"!"};
     actualizar(); return;
   }
   turno="z";
@@ -623,7 +641,7 @@ function iaZorro(){
   }
   // 2) movimiento simple: acercarse a gallinas y tapar entrada del gallinero
   var cand=todosSimplesZorro();
-  if(cand.length===0){ fin={ganador:"g",motivo:"¡Zorros inmovilizados! ¡Ganan las gallinas!"}; actualizar(); return; }
+  if(cand.length===0){ fin={ganador:"g",motivo:"¡"+notaZ()+" inmovilizados! ¡Ganan "+(nickG?"":"las ")+notaG()+"!"}; actualizar(); return; }
   var mejorM=cand[0];
   if(imp){
     var bm=1e9;
@@ -696,7 +714,7 @@ function notaRapidaGallina(m){
 function iaGallina(){
   if(enCadena) return; // el zorro debe terminar su cadena
   var movs=todosMovsGallina();
-  if(movs.length===0){ fin={ganador:"z",motivo:"Las gallinas no tienen movimientos. ¡Ganan los zorros!"}; actualizar(); return; }
+  if(movs.length===0){ fin={ganador:"z",motivo:"Las "+gMin()+" no tienen movimientos. ¡Ganan "+(nickZ?"":"los ")+notaZ()+"!"}; actualizar(); return; }
   // si hay soplo disponible, la IA decide según nivel
   if(soploDisponible && modo==="zorros" && Math.random()<probSoploIA()){
     aplicarSoplo(); return;
@@ -1036,21 +1054,91 @@ function dibujar(now){
     ctx.globalAlpha=1;
   }
   if(fin){
-    ctx.fillStyle="rgba(0,0,0,.55)";
-    ctx.fillRect(0,canvas.height/2-90,canvas.width,180);
-    ctx.fillStyle="#ffb347"; ctx.font="bold 34px sans-serif";
-    ctx.fillText(fin.ganador==="g"?"🏆 ¡Ganan las Gallinas!":"🏆 ¡Ganan los Zorros!",canvas.width/2,canvas.height/2-20);
-    ctx.fillStyle="#fff"; ctx.font="20px sans-serif";
-    ctx.fillText(fin.motivo,canvas.width/2,canvas.height/2+25);
-    ctx.font="17px sans-serif"; ctx.fillStyle="#ffe1a8";
-    ctx.fillText("Pulsa Reiniciar para jugar otra vez.",canvas.width/2,canvas.height/2+55);
+    ctx.fillStyle="rgba(0,0,0,.62)";
+    ctx.fillRect(0,canvas.height/2-112,canvas.width,224);
+    var tit=tituloFin(), tam=44;
+    ctx.textAlign="center";
+    ctx.font="bold "+tam+"px sans-serif";
+    while(tam>22 && ctx.measureText(tit).width>900){ tam-=2; ctx.font="bold "+tam+"px sans-serif"; }
+    ctx.fillStyle="#ffb347";
+    ctx.fillText(tit,canvas.width/2,canvas.height/2-60);
+    ctx.fillStyle="#fff"; ctx.font="bold 30px sans-serif";
+    ctx.fillText(fin.ganador==="g"?("¡Ganan "+(nickG?"":"las ")+notaG()+"! 🏆"):("¡Ganan "+(nickZ?"":"los ")+notaZ()+"! 🏆"),canvas.width/2,canvas.height/2-16);
+    ctx.font="19px sans-serif"; ctx.fillStyle="#ffe1a8";
+    ctx.fillText(fin.motivo,canvas.width/2,canvas.height/2+16);
+    ctx.fillStyle="#ff9ec6"; ctx.font="bold 20px sans-serif";
+    ctx.fillText("💖 Con amor para Yareima: lo más importante en mi vida. ¡Te quiero!",canvas.width/2,canvas.height/2+50);
+    ctx.fillStyle="#ffe1a8"; ctx.font="16px sans-serif";
+    ctx.fillText("Pulsa Menú para jugar otra vez.",canvas.width/2,canvas.height/2+80);
   }
   requestAnimationFrame(dibujar);
+}
+
+function nickGanador(){
+  // Apodo del bando ganador: en 2P cada humano puso el suyo;
+  // contra la IA solo existe el del bando humano (si gana la IA, sin nombre).
+  if(!fin) return "";
+  return fin.ganador==="g"?nickG:nickZ;
+}
+function ladoHumano(){
+  if(modo==="2p") return "ambos";
+  return modo==="gallinas"?"g":"z";
+}
+function perdioHumano(){
+  if(!fin || modo==="2p") return false;
+  return fin.ganador!==ladoHumano();
+}
+function mensajeFelicidades(n){
+  if(!n) return "¡Felicidades! 🎉";
+  var bajo=String(n).toLowerCase();
+  var especiales={
+    "pablo":     "¡Felicidades Pablozqui, Yare te saluda! 🎉",
+    "pablozqui": "¡Felicidades Pablozqui, Yare te saluda! 🎉",
+    "claudia": "¡Felicidades Clau, dile hola a Elena de parte de Yare! 🎉",
+    "clau":    "¡Felicidades Clau, dile hola a Elena de parte de Yare! 🎉",
+    "manuela": "¡Felicidades Manu, me alegra mucho que ganaste, nos vemos en clase! 🎉",
+    "manu":    "¡Felicidades Manu, me alegra mucho que ganaste, nos vemos en clase! 🎉",
+    "luis":    "¡Felicidades Luis, hola hermanito, te quiero mucho! 🎉",
+    "luisito": "¡Felicidades Luis, hola hermanito, te quiero mucho! 🎉"
+  };
+  if(especiales[bajo]) return especiales[bajo];
+  var lista=[
+    "¡Felicidades, {n}! ¡Qué gran victoria! 🎉",
+    "¡Increíble, {n}! ¡Eres la estrella del gallinero! ⭐",
+    "¡Bravo, {n}! ¡Partida magistral! 🏆",
+    "¡{n}, lo lograste! ¡A celebrar! 🎊",
+    "¡Qué jugada, {n}! ¡Nadie pudo contigo! 🐔🦊",
+    "¡Felicidades, {n}! ¡Yare te aplaude! 👏",
+    "¡Grande, {n}! ¡Otra más y eres leyenda! 🔥",
+    "¡{n} imparable! ¡Victoria total! 💪",
+    "¡Felicidades, {n}! ¡El gallinero es tuyo! 🐔",
+    "¡{n}, qué mente tan brillante! ¡Sigue así! 🧠",
+    "¡Victoria épica, {n}! ¡Cuéntaselo a todos! 📣",
+    "¡Felicidades, {n}! ¡Los zorros piden revancha! 🦊",
+    "¡{n}, campeón del corral! ¡Felicidades! 🏅",
+    "¡Qué nivel, {n}! ¡Hasta las gallinas aplauden! 👏🐔",
+    "¡Felicidades, {n}! ¡Hoy mandas tú! 🎖️"
+  ];
+  return lista[Math.floor(Math.random()*lista.length)].replace("{n}",n);
+}
+function tituloFin(){
+  if(perdioHumano()) return "¡Has perdido! 😞";
+  return mensajeFelicidades(nickGanador());
+}
+function textoEstado(){
+  // Una sola línea de estado: nunca vacía para que el tablero no cambie de tamaño.
+  if(fin) return "Partida terminada. ¡Pulsa Menú! 🔁";
+  if(colocandoSuspendido) return notaG()+": coloca el "+zMin()+" soplado 🦊";
+  if(enCadena) return "El "+zMin()+" sigue comiendo… 🦊";
+  if(soploDisponible && turno==="g") return "¡Puedes SOPLAR! 💨";
+  return turno==="g" ? "Turno: "+notaG()+" 🐔" : "Turno: "+notaZ()+" 🦊";
 }
 
 function actualizar(){
   var g=contarGallinas(), z=contarZorros();
   elContador.textContent="🐔 "+g+" · 🦊 "+z+(suspendidos>0?" (💨 fuera: "+suspendidos+")":"");
+  if(elbandoZ) elbandoZ.textContent=nickZ||"—";
+  if(elbandoG) elbandoG.textContent=nickG||"—";
   // Panel de soplados: visible cuando hay zorros fuera (quedan fuera hasta el final)
   if(elSoplados){
     if(suspendidos>0){
@@ -1058,14 +1146,19 @@ function actualizar(){
       elSopladosTxt.textContent=suspendidos+" fuera hasta el final 🕳️ (soplos totales: "+soplosTotal+"). En juego: "+z+".";
     } else elSoplados.hidden=true;
   }
-  if(fin){ elTurno.textContent="Fin del juego"; elSoplo.hidden=true; return; }
-  if(colocandoSuspendido){ elTurno.textContent="🐔 Gallinas: coloca el zorro soplado en una casilla vacía"; elSoplo.hidden=true; return; }
-  if(enCadena){ elTurno.textContent="🦊 Zorros: ¡sigue capturando en cadena!"; }
-  else if(turno==="g") elTurno.textContent="🐔 Turno: Gallinas"+(soploDisponible?" — ¡puedes SOPLAR!":"");
-  else elTurno.textContent="🦊 Turno: Zorros"+(capturasZorroInicio.length>0?" — ¡hay captura! (si no capturas te pueden soplar)":"");
+  if(fin){ elTurno.textContent=perdioHumano()?"😞 ¡Has perdido!":"Fin del juego"; elSoplo.hidden=true;
+    if(!elMensaje.textContent) mensaje(textoEstado());
+    return; }
+  if(colocandoSuspendido){ elTurno.textContent="🐔 "+notaG()+": coloca el "+zMin()+" soplado"; elSoplo.hidden=true;
+    if(!elMensaje.textContent) mensaje(textoEstado());
+    return; }
+  if(enCadena){ elTurno.textContent="🦊 "+notaZ()+": ¡sigue capturando en cadena!"; }
+  else if(turno==="g") elTurno.textContent="🐔 Turno: "+notaG()+(soploDisponible?" — ¡puedes SOPLAR!":"");
+  else elTurno.textContent="🦊 Turno: "+notaZ()+(capturasZorroInicio.length>0?" — ¡hay captura! (si no capturas te pueden soplar)":"");
   // botón soplo: solo en turno gallina humano, cuando hay omisión
   var humanoGallinas = (modo==="2p"||modo==="gallinas");
   elSoplo.hidden = !(soploDisponible && turno==="g" && humanoGallinas && !colocandoSuspendido && !fin);
+  if(!elMensaje.textContent) mensaje(textoEstado());
 }
 
 // ---------- Entrada ----------
@@ -1122,13 +1215,13 @@ canvas.addEventListener("pointerdown", function(e){
       seleccionado={x:c.x,y:c.y};
       var ms=movsGallinaDesde(c.x,c.y);
       legalesSel=ms.map(function(m){return {aX:m.aX,aY:m.aY};});
-      if(ms.length===0) mensaje("Esa gallina no tiene movimientos hacia adelante.");
+      if(ms.length===0) mensaje("Esa "+gMin()+" no puede avanzar 🐔");
       else mensaje("");
       actualizar();
     } else if(v==="z" && soploDisponible && zorroASoplar && c.x===zorroASoplar.x && c.y===zorroASoplar.y){
       aplicarSoplo();
     } else {
-      mensaje("Selecciona una gallina 🐔.");
+      mensaje("Selecciona una "+gMin()+" 🐔.");
     }
   } else {
     // turno zorro
@@ -1141,7 +1234,7 @@ canvas.addEventListener("pointerdown", function(e){
           return;
         }
       }
-      mensaje("Se comió una y puede seguir: DEBE seguir con el mismo zorro. Busca el salto.");
+      mensaje("¡Sigue comiendo! Busca el salto 🦊");
       return;
     }
     if(seleccionado && c.x===seleccionado.x && c.y===seleccionado.y){
@@ -1166,39 +1259,60 @@ canvas.addEventListener("pointerdown", function(e){
       // El salto hay que descubrirlo: toca la casilla vacía justo detrás de la gallina.
       legalesSel=[];
       for(var w=0;w<ss.length;w++) legalesSel.push({aX:ss[w].aX,aY:ss[w].aY});
-      mensaje(cc.length>0?"¡Este zorro puede comer! Encuentra el salto tú mismo (sin pista). Si mueves sin comer, te pueden soplar.":(capturasZorroInicio.length>0?"⚠️ Hay comida en otro zorro: si no comes te pueden soplar.":""));
+      mensaje(cc.length>0?"¡Puede comer! Encuentra el salto 🦊":(capturasZorroInicio.length>0?"⚠️ Otro "+zMin()+" puede comer: ¡te pueden soplar!":""));
       actualizar();
     } else {
-      mensaje("Selecciona un zorro 🦊.");
+      mensaje("Selecciona un "+zMin()+" 🦊.");
     }
   }
 });
 
 // ---------- Botones ----------
+// Apodos: en 2P los dos editables; contra la IA el del rival se muestra
+// opaco y bloqueado (no seleccionable).
+(function(){
+  var sel=document.getElementById("modo");
+  function reflejar(){
+    var m=sel.value;
+    var g=document.getElementById("fila-nick-g");
+    var z=document.getElementById("fila-nick-z");
+    g.hidden=false; z.hidden=false;
+    var gOn=(m==="2p"||m==="gallinas"), zOn=(m==="2p"||m==="zorros");
+    if(gOn){g.classList.remove("apagado");}else{g.classList.add("apagado");}
+    if(zOn){z.classList.remove("apagado");}else{z.classList.add("apagado");}
+    document.getElementById("nick-g").disabled=!gOn;
+    document.getElementById("nick-z").disabled=!zOn;
+  }
+  sel.addEventListener("change",reflejar);
+  reflejar();
+})();
 document.getElementById("btn-jugar").addEventListener("click", function(){
   ctxAudio();
   modo=document.getElementById("modo").value;
   dificultad=document.getElementById("dificultad").value;
+  nickG=(modo==="2p"||modo==="gallinas")?normalizarNick(document.getElementById("nick-g").value):"";
+  nickZ=(modo==="2p"||modo==="zorros")?normalizarNick(document.getElementById("nick-z").value):"";
   elMenu.classList.add("oculto");
   iniciar();
 });
 document.getElementById("btn-menu").addEventListener("click", function(){
   elMenu.classList.remove("oculto");
 });
-document.getElementById("btn-reiniciar").addEventListener("click", function(){
-  elMenu.classList.add("oculto");
-  iniciar();
-});
 document.getElementById("btn-sonido").addEventListener("click", function(){
   sonidoOn=!sonidoOn;
   this.textContent=sonidoOn?"🔊 Sonido":"🔇 Silencio";
   if(sonidoOn){ ctxAudio(); sonidoGallina(); }
 });
+(function(){
+  var bf=document.getElementById("btn-full");
+  if(bf) bf.addEventListener("click", function(){
+    try{
+      if(document.fullscreenElement){ document.exitFullscreen(); }
+      else if(document.documentElement.requestFullscreen){ document.documentElement.requestFullscreen(); }
+    }catch(e){}
+  });
+})();
 elSoplo.addEventListener("click", aplicarSoplo);
-window.addEventListener("keydown", function(e){
-  if(e.key==="r"||e.key==="R"){ elMenu.classList.add("oculto"); iniciar(); }
-  if(e.key==="m"||e.key==="M"){ sonidoOn=!sonidoOn; }
-});
 window.addEventListener("pointerdown", function(){ ctxAudio(); }, {once:true});
 
 // estado inicial: tablero armado tras el menú + loop de animación

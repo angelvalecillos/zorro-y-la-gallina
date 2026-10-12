@@ -10,20 +10,9 @@
 <div id="app">
   <header>
     <h1>🦊 Zorro y la Gallina <small>· juego venezolano · 2 zorros vs 20 gallinas</small></h1>
-    <div id="barra">
-      <button id="btn-menu" class="sec" type="button">Menú</button>
-      <button id="btn-reiniciar" class="sec" type="button">Reiniciar (R)</button>
-      <button id="btn-sonido" class="sec" type="button">🔊 Sonido</button>
-      <button id="btn-soplo" class="peligro" type="button" hidden>¡Soplar! 💨</button>
-    </div>
   </header>
 
-  <div id="info-turno">
-    <span id="turno">Elige modo de juego</span>
-    <span id="contador">🐔 20 · 🦊 2</span>
-  </div>
-  <div id="soplados" hidden>🦊💨 <span id="soplados-txt"></span></div>
-
+  <div id="juego">
   <div id="tablero-wrap">
     <canvas id="tablero" width="960" height="820"></canvas>
     <div id="menu">
@@ -45,6 +34,12 @@
             <option value="imposible">Imposible 🧠</option>
           </select>
         </label>
+        <label id="fila-nick-g">Apodo Gallinas 🐔
+          <input id="nick-g" type="text" maxlength="16" placeholder="Ej: LaPollita" autocomplete="off">
+        </label>
+        <label id="fila-nick-z">Apodo Zorros 🦊
+          <input id="nick-z" type="text" maxlength="16" placeholder="Ej: Colmillo" autocomplete="off">
+        </label>
         <div class="fila">
           <button id="btn-jugar" type="button">▶ Jugar</button>
         </div>
@@ -53,18 +48,32 @@
     </div>
   </div>
 
-  <div id="mensaje"></div>
-  <div id="historial"></div>
-
-  <details id="reglas">
-    <summary>📜 Reglas (versión venezolana)</summary>
-    <ul>
-      <li><b>Gallinas (20):</b> 1 casilla por turno hacia adelante, de lado o en diagonal delantera. Nunca retroceden. No capturan.</li>
-      <li><b>Zorros (2):</b> 1 casilla en cualquier dirección. Capturan saltando <b>una</b> gallina a casilla vacía justo detrás. No pueden saltar dos gallinas seguidas. Si puede seguir capturando en cadena, debe hacerlo.</li>
-      <li><b>Soplo:</b> si un zorro tenía captura y juega sin capturar, las gallinas pueden <b>soplarlo</b> (sale del tablero <b>hasta el final</b>).</li>
-      <li><b>Ganan gallinas</b> si ocupan las 9 del gallinero o inmovilizan a los zorros. <b>Ganan zorros</b> si quedan 8 o menos gallinas.</li>
-    </ul>
-  </details>
+  <aside id="panel">
+    <div id="barra">
+      <button id="btn-menu" class="sec" type="button">Menú</button>
+      <button id="btn-sonido" class="sec" type="button">🔊 Sonido</button>
+      <button id="btn-full" class="sec" type="button" title="Pantalla completa">⛶</button>
+      <button id="btn-soplo" class="peligro" type="button" hidden>¡Soplar! 💨</button>
+    </div>
+    <div id="info-turno">
+      <span id="turno">Elige modo de juego</span>
+      <span id="contador">🐔 20 · 🦊 2</span>
+    </div>
+    <div id="bandos"><span>🦊 Zorros: <b id="bando-z">—</b></span><span>🐔 Gallinas: <b id="bando-g">—</b></span></div>
+    <div id="soplados" hidden>🦊💨 <span id="soplados-txt"></span></div>
+    <div id="mensaje">Turno: Gallinas 🐔</div>
+    <div id="historial"></div>
+    <details id="reglas">
+      <summary>📜 Reglas (versión venezolana)</summary>
+      <ul>
+        <li><b>Gallinas (20):</b> 1 casilla por turno hacia adelante, de lado o en diagonal delantera. Nunca retroceden. No capturan.</li>
+        <li><b>Zorros (2):</b> 1 casilla en cualquier dirección. Capturan saltando <b>una</b> gallina a casilla vacía justo detrás. No pueden saltar dos gallinas seguidas. Si puede seguir capturando en cadena, debe hacerlo.</li>
+        <li><b>Soplo:</b> si un zorro tenía captura y juega sin capturar, las gallinas pueden <b>soplarlo</b> (sale del tablero <b>hasta el final</b>).</li>
+        <li><b>Ganan gallinas</b> si ocupan las 9 del gallinero o inmovilizan a los zorros. <b>Ganan zorros</b> si quedan 8 o menos gallinas.</li>
+      </ul>
+    </details>
+  </aside>
+  </div>
 </div>
 <script src="game.js"></script>
 </body>
