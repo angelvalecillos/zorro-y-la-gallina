@@ -101,6 +101,12 @@ function notaG(){ return nickG||"Gallinas"; }
 function notaZ(){ return nickZ||"Zorros"; }
 function gMin(){ return nickG||"gallina"; }
 function zMin(){ return nickZ||"zorro"; }
+// Motivo cuando las gallinas se quedan sin jugadas (ganan los zorros).
+// Con apodo se adapta la frase: "Ana no tiene ningún movimiento."
+function motivoGallinasBloqueadas(){
+  var quien=nickG?(notaG()+" no tiene ningún movimiento."):"Las gallinas no tienen ningún movimiento.";
+  return quien+" ¡Ganan "+(nickZ?"":"los ")+notaZ()+"!";
+}
 var iaPensando = false;
 
 function mensaje(t){ elMensaje.textContent = t || ""; }
@@ -397,7 +403,7 @@ function moverZorroSimple(deX,deY,aX,aY){
   turno="g";
   // ¿gallinas sin movimientos? -> ganan zorros (bloqueo total)
   if(todosMovsGallina().length===0){
-    fin={ganador:"z",motivo:"Las "+gMin()+" no tienen ningún movimiento. ¡Ganan "+(nickZ?"":"los ")+notaZ()+"!"};
+    fin={ganador:"z",motivo:motivoGallinasBloqueadas()};
   }
   revisarFin();
   actualizar();
@@ -436,7 +442,7 @@ function moverZorroCaptura(cap){
   // Sin retorno: el zorro soplado queda fuera hasta el final.
   turno="g";
   if(todosMovsGallina().length===0){
-    fin={ganador:"z",motivo:"Las "+gMin()+" no tienen ningún movimiento. ¡Ganan "+(nickZ?"":"los ")+notaZ()+"!"};
+    fin={ganador:"z",motivo:motivoGallinasBloqueadas()};
   }
   actualizar();
   pedirIA();
@@ -714,7 +720,7 @@ function notaRapidaGallina(m){
 function iaGallina(){
   if(enCadena) return; // el zorro debe terminar su cadena
   var movs=todosMovsGallina();
-  if(movs.length===0){ fin={ganador:"z",motivo:"Las "+gMin()+" no tienen movimientos. ¡Ganan "+(nickZ?"":"los ")+notaZ()+"!"}; actualizar(); return; }
+  if(movs.length===0){ fin={ganador:"z",motivo:motivoGallinasBloqueadas()}; actualizar(); return; }
   // si hay soplo disponible, la IA decide según nivel
   if(soploDisponible && modo==="zorros" && Math.random()<probSoploIA()){
     aplicarSoplo(); return;
@@ -1123,7 +1129,15 @@ function mensajeFelicidades(n){
 }
 function tituloFin(){
   if(perdioHumano()) return "¡Has perdido! 😞";
-  return mensajeFelicidades(nickGanador());
+  if(!fin) return "";
+  // Se sortea UNA sola vez por partida (y por apodo): si se recalculara en cada
+  // frame, el mensaje aleatorio cambiaría a toda velocidad en pantalla.
+  var quien=nickGanador();
+  if(fin.tituloGuardado===undefined || fin.tituloQuien!==quien){
+    fin.tituloGuardado=mensajeFelicidades(quien);
+    fin.tituloQuien=quien;
+  }
+  return fin.tituloGuardado;
 }
 function textoEstado(){
   // Una sola línea de estado: nunca vacía para que el tablero no cambie de tamaño.
@@ -1134,7 +1148,30 @@ function textoEstado(){
   return turno==="g" ? "Turno: "+notaG()+" 🐔" : "Turno: "+notaZ()+" 🦊";
 }
 
+// Red de seguridad: si el bando que debe mover no tiene NINGUNA jugada, la
+// partida termina sí o sí. Así el encierro de gallinas (ganan los zorros) y
+// los zorros inmovilizados o soplados (ganan las gallinas) nunca se quedan
+// colgados sin resultado, sin importar por qué camino se llegó a esa posición.
+function chequearBloqueo(){
+  if(fin || enCadena || colocandoSuspendido) return false;
+  if(turno==="g"){
+    if(contarZorros()===0){
+      fin={ganador:"g",motivo:"¡No quedan "+zMin()+" en el tablero! ¡Ganan "+(nickG?"":"las ")+notaG()+"!"};
+      return true;
+    }
+    if(todosMovsGallina().length===0){
+      fin={ganador:"z",motivo:motivoGallinasBloqueadas()};
+      return true;
+    }
+  } else if(!zorroTieneMovimientos()){
+    fin={ganador:"g",motivo:"¡"+notaZ()+" inmovilizados! ¡Ganan "+(nickG?"":"las ")+notaG()+"!"};
+    return true;
+  }
+  return false;
+}
+
 function actualizar(){
+  chequearBloqueo();
   var g=contarGallinas(), z=contarZorros();
   elContador.textContent="🐔 "+g+" · 🦊 "+z+(suspendidos>0?" (💨 fuera: "+suspendidos+")":"");
   if(elbandoZ) elbandoZ.textContent=nickZ||"—";
@@ -1147,7 +1184,7 @@ function actualizar(){
     } else elSoplados.hidden=true;
   }
   if(fin){ elTurno.textContent=perdioHumano()?"😞 ¡Has perdido!":"Fin del juego"; elSoplo.hidden=true;
-    if(!elMensaje.textContent) mensaje(textoEstado());
+    mensaje(textoEstado()); // siempre: que no quede una pista vieja al terminar
     return; }
   if(colocandoSuspendido){ elTurno.textContent="🐔 "+notaG()+": coloca el "+zMin()+" soplado"; elSoplo.hidden=true;
     if(!elMensaje.textContent) mensaje(textoEstado());
